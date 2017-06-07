@@ -1,112 +1,100 @@
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.util.*;
+import java.io.*;
+import com.mongodb.DBCollection;
+import com.mongodb.*;
 
 @WebServlet("/Trending")
 
 public class Trending extends HttpServlet {
 
-	/* Trending Page Displays all the Consoles and their Information in Game Speed*/
-
-	protected void doGet(HttpServletRequest request,
-		HttpServletResponse response) throws ServletException, IOException {
-		response.setContentType("text/html");
-		PrintWriter pw = response.getWriter();
-
-		/* Checks the Consoles type whether it is microsft or sony or nintendo then add products to hashmap*/
-
-		String name = null;
-		String CategoryName = request.getParameter("maker");
-		HashMap<String, Phone> hm = new HashMap<String, Phone>();
-		if(CategoryName==null)
-		{
-			hm.putAll(SaxParserDataStore.phones);
-		}
-		else
-		{
-			if(CategoryName.equals("lg"))
-			{
-				for(Map.Entry<String,Phone> entry : SaxParserDataStore.phones.entrySet())
-				{
-				  if(entry.getValue().getRetailer().equals("lg")) 
-				  {
-					 hm.put(entry.getValue().getId(),entry.getValue());
-				  }
-				}
-			}
-			else if(CategoryName.equals("nokia"))
-			{
-				for(Map.Entry<String,Phone> entry : SaxParserDataStore.phones.entrySet())
-				{
-				  if(entry.getValue().getRetailer().equals("nokia"))
-				  {
-					 hm.put(entry.getValue().getId(),entry.getValue());
-				  }
-				}
-			}
-			else if(CategoryName.equals("Apple"))
-			{
-				for(Map.Entry<String,Phone> entry : SaxParserDataStore.phones.entrySet())
-				{ 
-			      if(entry.getValue().getRetailer().equals("Apple"))
-				  {
-					 hm.put(entry.getValue().getId(),entry.getValue());
-				  }
-				}
-			}
-		}
-		
-
-	
-
-		Utilities utility = new Utilities(request, pw);
-		utility.printHtml("Header.html");
-		utility.printHtml("LeftNavigationBar.html");
-		pw.print("<div id='content'><div class='post'><h2 class='title meta'>");
-		pw.print("<a style='font-size: 24px;'>"+name+" Phones </a>");
-		pw.print("</h2><div class='entry'><table id='bestseller'>");
-		int i = 1; int size= hm.size();
-		for(Map.Entry<String, Phone> entry : hm.entrySet()){
-			Phone phone = entry.getValue();
-			if(i%3==1) pw.print("<tr>");
-			pw.print("<td><div id='shop_item'>");
-			pw.print("<h3>"+phone.getName()+"</h3>");
-			pw.print("<strong>$"+phone.getPrice()+"</strong><ul>");
-			pw.print("<li id='item'><img src='images/phones/"+phone.getImage()+"' alt='' /></li>");
-			pw.print("<li><form method='post' action='Cart'>" +
-					"<input type='hidden' name='name' value='"+entry.getKey()+"'>"+
-					"<input type='hidden' name='type' value='phones'>"+
-					"<input type='hidden' name='maker' value='"+phone.getRetailer()+"'>"+
-					"<input type='hidden' name='access' value=''>"+
-					"<input type='submit' class='btnbuy' value='Buy Now'></form></li>");
-			pw.print("<li><form method='post' action='WriteReview'>"+"<input type='hidden' name='name' value='"+entry.getKey()+"'>"+
-					"<input type='hidden' name='type' value='phones'>"+
-					"<input type='hidden' name='maker' value='"+phone.getRetailer()+"'>"+
-					"<input type='hidden' name='access' value=''>"+
-				    "<input type='submit' value='WriteReview' class='btnreview'></form></li>");
-			pw.print("<li><form method='post' action='ViewReview'>"+"<input type='hidden' name='name' value='"+entry.getKey()+"'>"+
-					"<input type='hidden' name='type' value='phones'>"+
-					"<input type='hidden' name='maker' value='"+phone.getRetailer()+"'>"+
-					"<input type='hidden' name='access' value=''>"+
-				    "<input type='submit' value='ViewReview' class='btnreview'></form></li>");
-			pw.print("</ul></div></td>");
+	MongoDBDataStoreUtilities s = null;
+	 static DBCollection reviews;
+	AggregationOutput aggregate3 = null;
+	AggregationOutput aggregate2 = null;	
+	AggregationOutput aggregate1 = null;
+    
+    public void init() {
+		   
+            s  = new MongoDBDataStoreUtilities();           
 			
-			if(i%3==0 || i == size) pw.print("</tr>");
-			i++;
-		}		
-		pw.print("</table></div></div></div>");	
-		utility.printHtml("Footer.html");
-	}
+			aggregate1 = s.topfiveproductliked();
+			aggregate2 = s.topfivezip(); 
+			aggregate3 = s.topsold();
+
+    }
 
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 
 	}
+		protected void doGet(HttpServletRequest request,HttpServletResponse response) throws ServletException, IOException {
+		
+		response.setContentType("text/html");
+		 
+		PrintWriter pw = response.getWriter();
+		Utilities utility = new Utilities(request, pw);
+		
+		utility.printHtml("Header.html");
+		utility.printHtml("LeftNavigationBar.html");
+
+		pw.print("<form name ='Trending' action='Trending' method='get'>");
+		pw.print("<div id='content'><div class='post'><h2 class='title meta'>");
+		pw.print("<a style='font-size: 24px;color: red;'>See the trending products:</a>");
+		pw.print("</h2><div class='entry'>");
+			
+		
+			//top 5 rating 							 
+		pw.print("</table>"); 			                           
+		pw.print("<table id='bestdeal'>"); 
+		pw.println("<tr><td><center>"+"Top five most liked products based on rating"+"</center></td></tr>");
+		pw.println("<tr><td> "+"ProductModelName"+"</td>&nbsp" + "<td>"+"ReviewRating"+"</td></tr>");		
+
+		for (DBObject result : aggregate1.results()) { 
+		BasicDBObject bobj = (BasicDBObject) result; //call for the result of top rating products 		
+										pw.println("<tr><td> "+bobj.getString("ProductModelName")+"</td>&nbsp" + "<td>"+bobj.getString("ReviewRating")+"</td></tr>"); 
+										
+										}
+									
+		pw.print("</table>");  
+		
+		
+		
+ 		//top zip max product sold in this zip code
+		pw.print("</table>"); 			                           
+		pw.print("<table id='bestdeal2'>"); 
+		pw.println("<tr><td><center>"+"Top five zip-codes where maximum number of products sold"+"</center></td></tr>");
+		pw.println("<tr><td> "+"RetailerZip"+"</td>&nbsp" + "<td>"+"Products sold:"+"</td></tr>");
+		for (DBObject result : aggregate2.results()) { 
+		BasicDBObject bobj = (BasicDBObject) result; 		
+										pw.println("<tr><td> "+bobj.getString("RetailerZip")+"</td>&nbsp" + "<td>"+bobj.getString("ProductSold")+"</td></tr>"); 
+										
+										}									
+		pw.print("</table>");  
+		
+		
+		//most sold product no matter the rating 
+		pw.print("</table>"); 			                           
+		pw.print("<table id='bestdeal3'>"); 
+		pw.println("<tr><td><center>"+"Top five most sold products regardless of the rating"+"</center></td></tr>");
+		pw.println("<tr><td> "+"ProductModelName"+"</td>&nbsp" + "<td>"+"sold:"+"</td></tr>");
+		for (DBObject result : aggregate3.results()) { 
+		BasicDBObject bobj = (BasicDBObject) result; 
+	
+										pw.println("<tr><td> "+bobj.getString("ProductModelName")+"</td>&nbsp" + "<td>"+bobj.getString("ProductSold")+"</td></tr>"); 
+										
+										}									
+		pw.print("</table>");  
+		
+	   pw.print("</form></div></div></div>");		
+	   utility.printHtml("Footer.html");  
+    }
 
 }

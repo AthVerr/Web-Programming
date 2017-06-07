@@ -12,7 +12,12 @@ import java.io.*;
 @WebServlet("/ViewOrder")
 
 public class ViewOrder extends HttpServlet {
-	
+	MySqlDataStoreUtilities sd = null;
+     
+    public void init() {
+	          sd = new MySqlDataStoreUtilities();
+             
+    }
 protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
 		response.setContentType("text/html");
@@ -53,9 +58,8 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response) t
 
 		try
 		{
-			FileInputStream fileInputStream = new FileInputStream(new File(TOMCAT_HOME+"\\webapps\\BestDeal\\PaymentDetails.txt"));
-			ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);	      
-			orderPayments = (HashMap)objectInputStream.readObject();
+			
+			orderPayments= sd.selectOrder();
 		}
 		catch(Exception e)
 		{
@@ -73,9 +77,8 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response) t
 			//get the order details from file
 			try
 		    {
-				FileInputStream fileInputStream = new FileInputStream(new File(TOMCAT_HOME+"\\webapps\\BestDeal\\PaymentDetails.txt"));
-				ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);	      
-				orderPayments = (HashMap)objectInputStream.readObject();
+				
+				orderPayments= sd.selectOrder();
 			}
 			catch(Exception e)
 			{
@@ -128,9 +131,7 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response) t
 			try
 			{
 		
-				FileInputStream fileInputStream = new FileInputStream(new File(TOMCAT_HOME+"\\webapps\\BestDeal\\PaymentDetails.txt"));
-				ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);	      
-				orderPayments = (HashMap)objectInputStream.readObject();
+				orderPayments= sd.selectOrder();
 			}
 			catch(Exception e)
 			{
@@ -154,12 +155,8 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response) t
 			//save the updated hashmap with removed order to the file	
 			try
 			{	
-				FileOutputStream fileOutputStream = new FileOutputStream(new File(TOMCAT_HOME+"\\webapps\\BestDeal\\PaymentDetails.txt"));
-				ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-            	objectOutputStream.writeObject(orderPayments);
-				objectOutputStream.flush();
-				objectOutputStream.close();       
-				fileOutputStream.close();
+				
+				//sd.insertOrder(orderId,username(),orderName,orderPrice,userAddress,creditCardNo);
 			}
 			catch(Exception e)
 			{

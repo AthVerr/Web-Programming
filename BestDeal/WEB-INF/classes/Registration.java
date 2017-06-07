@@ -14,6 +14,14 @@ import java.io.*;
 public class Registration extends HttpServlet {
 	private String error_msg;
 
+   MySqlDataStoreUtilities sd = null;
+    /** 
+     * Initializes the servlet with some usernames/password
+    */  
+    public void init() {
+	          sd = new MySqlDataStoreUtilities();
+             
+    }
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html");
 		PrintWriter pw = response.getWriter();
@@ -50,9 +58,8 @@ public class Registration extends HttpServlet {
 
 			try
 			{
- 			 FileInputStream fileInputStream = new FileInputStream(new File(TOMCAT_HOME+"\\webapps\\BestDeal\\UserDetails.txt"));
-			 ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);	      
-			 hm= (HashMap)objectInputStream.readObject();
+ 			
+			 hm=sd.selectUser();
 			}
 			catch(Exception e)
 			{
@@ -70,12 +77,8 @@ public class Registration extends HttpServlet {
 
 				User user = new User(username,password,usertype);
 				hm.put(username, user);
-			    FileOutputStream fileOutputStream = new FileOutputStream(TOMCAT_HOME+"\\webapps\\BestDeal\\UserDetails.txt");
-        		ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-           	 	objectOutputStream.writeObject(hm);
-				objectOutputStream.flush();
-				objectOutputStream.close();       
-				fileOutputStream.close();
+				sd.insertUser(username, password, usertype); //used for insert users into data base
+			   
 				HttpSession session = request.getSession(true);				
 				session.setAttribute("login_msg", "Your "+usertype+" account has been created. Please login");
 				if(!utility.isLoggedin()){

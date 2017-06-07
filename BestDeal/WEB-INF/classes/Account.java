@@ -25,7 +25,7 @@ public class Account extends HttpServlet {
 	protected void displayAccount(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html");
 		PrintWriter pw = response.getWriter();
-		Utilities utility = new Utilities(request, pw);
+		Utilities utility = new Utilities(request, pw);//conection with login 
 		try
          {  
            response.setContentType("text/html");
@@ -36,21 +36,23 @@ public class Account extends HttpServlet {
 				response.sendRedirect("Login");
 				return;
 			}
-			HttpSession session=request.getSession(); 	
+			HttpSession session=request.getSession(); 
+String user = (String)session.getValue("username");
+		String usertype = (String)session.getValue("usertype");			
 			utility.printHtml("Header.html");
 			utility.printHtml("LeftNavigationBar.html");
 			pw.print("<div id='content'><div class='post'><h2 class='title meta'>");
 			pw.print("<a style='font-size: 24px;color: red;'>Personal Account</a>");
 			pw.print("</h2><div class='entry'>");
-			User user=utility.getUser();
+			//User user=utility.getUser();
 			pw.print("<table class='gridtable'>");
 			pw.print("<tr>");
 			pw.print("<td> User Name: </td>");
-			pw.print("<td>" +user.getName()+ "</td>");
+			pw.print("<td>" +user+ "</td>");
 			pw.print("</tr>");
 			pw.print("<tr>");
 			pw.print("<td> User Type: </td>");
-			pw.print("<td>" +user.getUsertype()+ "</td>");
+			pw.print("<td>" +usertype+ "</td>");
 			pw.print("</tr>");
 			pw.print("</table>");		
 			pw.print("</h2></div></div></div>");		

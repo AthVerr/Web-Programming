@@ -38,7 +38,17 @@ public class Utilities extends HttpServlet{
 		this.session = req.getSession(true);
 	}
 
-
+   HashMap<String,User> hm = null;
+   MySqlDataStoreUtilities sd = null;
+   
+    /** 
+     * Initializes the servlet with some usernames/password
+    */  
+    public void init() {
+	          sd = new MySqlDataStoreUtilities();
+              hm  = new HashMap<String,User>();
+		     
+    }
 
 	/*  Printhtml Function gets the html file name as function Argument, 
 		If the html file name is Header.html then It gets Username from session variables.
@@ -144,9 +154,8 @@ public class Utilities extends HttpServlet{
 		String TOMCAT_HOME = System.getProperty("catalina.home");
 			try
 			{		
-				FileInputStream fileInputStream=new FileInputStream(new File(TOMCAT_HOME+"\\webapps\\BestDeal\\UserDetails.txt"));
-				ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);	      
-				hm= (HashMap)objectInputStream.readObject();
+				
+				 hm   = sd.selectUser();
 			}
 			catch(Exception e)
 			{
@@ -169,9 +178,8 @@ public class Utilities extends HttpServlet{
 		String TOMCAT_HOME = System.getProperty("catalina.home");
 			try
 			{
-				FileInputStream fileInputStream = new FileInputStream(new File(TOMCAT_HOME+"\\webapps\\BestDeal\\PaymentDetails.txt"));
-				ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);	      
-				orderPayments = (HashMap)objectInputStream.readObject();
+				
+				orderPayments= sd.selectOrder();
 			}
 			catch(Exception e)
 			{
@@ -230,17 +238,15 @@ public class Utilities extends HttpServlet{
 		}
 		
 	}
-	// store the payment details for orders
+	// store the payment details for orders into MySql database
 	public void storePayment(int orderId,
 		String orderName,double orderPrice,String userAddress,String creditCardNo){
 		HashMap<Integer, ArrayList<OrderPayment>> orderPayments= new HashMap<Integer, ArrayList<OrderPayment>>();
 		String TOMCAT_HOME = System.getProperty("catalina.home");
 			// get the payment details file 
 			try
-			{
-				FileInputStream fileInputStream = new FileInputStream(new File(TOMCAT_HOME+"\\webapps\\BestDeal\\PaymentDetails.txt"));
-				ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);	      
-				orderPayments = (HashMap)objectInputStream.readObject();
+			{				
+				orderPayments= sd.selectOrder();
 			}
 			catch(Exception e)
 			{
@@ -264,12 +270,8 @@ public class Utilities extends HttpServlet{
 
 			try
 			{	
-				FileOutputStream fileOutputStream = new FileOutputStream(new File(TOMCAT_HOME+"\\webapps\\BestDeal\\PaymentDetails.txt"));
-				ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-            	objectOutputStream.writeObject(orderPayments);
-				objectOutputStream.flush();
-				objectOutputStream.close();       
-				fileOutputStream.close();
+				sd.insertOrder(orderId,username(),orderName,orderPrice,userAddress,creditCardNo);
+				
 			}
 			catch(Exception e)
 			{

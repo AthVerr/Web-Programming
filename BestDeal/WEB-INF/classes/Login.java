@@ -12,28 +12,32 @@ import javax.servlet.http.HttpSession;
 
 public class Login extends HttpServlet {
 //send a post request 
+HashMap<String,User> hm = null;
+   MySqlDataStoreUtilities sd = null;
+    
+    public void init() {
+	          sd = new MySqlDataStoreUtilities();
+              hm  = new HashMap<String,User>();
+		     
+    }
 	protected void doPost(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {
+		HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html");
 		PrintWriter pw = response.getWriter();
 
-		/* User Information(username,password,usertype) is obtained from HttpServletRequest,
-		Based on the Type of user(customer,retailer,manager) respective hashmap is called and the username and 
-		password are validated and added to session variable and display Login Function is called */
 
 		String username = request.getParameter("username");
 		String password = request.getParameter("password");
 		String usertype = request.getParameter("usertype");
-		HashMap<String, User> hm=new HashMap<String, User>(); //save the users in a hash map 
+		
 		String TOMCAT_HOME = System.getProperty("catalina.home");
 		//user details are validated using a file 
 		//if the file containts username and passoword user entered user will be directed to home page
 		//else error message will be shown
 		try
 		{		
-          FileInputStream fileInputStream = new FileInputStream(new File(TOMCAT_HOME+"\\webapps\\BestDeal\\UserDetails.txt"));
-          ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);	      
-		  hm = (HashMap)objectInputStream.readObject();
+         
+		 		  hm = sd.selectUser();
 		}
 		catch(Exception e)
 		{
