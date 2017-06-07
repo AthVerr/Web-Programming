@@ -112,7 +112,7 @@
 <LaptopCatalog>
 <laptop id="mac">
         <name>Macbook Pro</name>
-        <price>1000.99</price>
+        <price>1000</price>
         <image>mac.jpg</image>
         <manufacturer>mac</manufacturer>
         <condition>New</condition>
